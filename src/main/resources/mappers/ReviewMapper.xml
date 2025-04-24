@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.example.frontservice.mapper.ReviewMapper">
+<mapper namespace="com.example.reviewservice.mapper.ReviewMapper">
     <resultMap id="reviewResultMap" type="Review">
         <result property="uid" column="uid"/>
         <result property="userUid" column="user_uid"/>
@@ -16,8 +16,43 @@
     </resultMap>
 
     <insert id="insertReview" parameterType="Review" useGeneratedKeys="true" keyProperty="uid">
-        INSERT INTO review (user_uid,social_uid,order_uid,rate,title,content,status)
-        VALUES (#{userUid},#{socialUid},#{orderUid}, #{rate}, #{title}, #{content}, #{status});
+        INSERT INTO review (user_uid,social_uid,order_uid,rate,title,content,status,version)
+        VALUES (#{userUid},#{socialUid},#{orderUid}, #{rate}, #{title}, #{content}, #{status},#{version});
     </insert>
+
+    <select id="findAllReviews" resultMap="reviewResultMap">
+        SELECT
+            uid,
+            user_uid,
+            social_uid,
+            order_uid,
+            rate,
+            title,
+            content,
+            status,
+            created_date,
+            version
+        FROM review
+        WHERE status = 'ACTIVE'
+        ORDER BY created_date DESC
+    </select>
+
+    <select id="findByUid" parameterType="Integer" resultMap="reviewResultMap">
+        SELECT uid, user_uid, social_uid, order_uid, rate, title, content, status, created_date, version
+        FROM review
+        WHERE uid = #{uid};
+    </select>
+
+    <select id="findByUserUid" parameterType="Integer" resultMap="reviewResultMap">
+        SELECT uid, user_uid, social_uid, order_uid, rate, title, content, status, created_date, version
+        FROM review
+        WHERE user_uid = #{userUid};
+    </select>
+
+    <update id="deleteByUid" parameterType="Integer" useGeneratedKeys="true" keyProperty="uid">
+        UPDATE review
+        SET status = 'DELETED'
+        WHERE uid = #{uid};
+    </update>
 
 </mapper>
