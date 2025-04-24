@@ -1,7 +1,10 @@
+// build.gradle
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
 }
 
 group = 'com.example'
@@ -33,13 +36,14 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.4'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
+    testImplementation 'org.mockito:mockito-inline:5.3.1'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // JWT 이용하기 위한 라이브러리 3개
-    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'  // JWT API
-    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'    // JWT 구현체
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // JSON 처리를 위한 Jackson 모듈
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 }
 
 dependencyManagement {
@@ -51,4 +55,30 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy(tasks.named('jacocoTestReport'))
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    jvmArgs += [
+            '--add-opens=java.base/java.lang=ALL-UNNAMED',
+            '--add-opens=java.base/java.util=ALL-UNNAMED',
+            '--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED',
+            '--add-opens=java.base/java.io=ALL-UNNAMED'
+    ]
+    finalizedBy jacocoTestReport
+    systemProperty 'file.encoding', 'UTF-8'
+}
+
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+jacocoTestReport {
+    dependsOn(tasks.named('test'))
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
 }
